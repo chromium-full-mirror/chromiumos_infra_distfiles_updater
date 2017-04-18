@@ -1,0 +1,208 @@
+<html>
+  <head>
+    <title>dup-it</title>
+    <link rel="stylesheet" type="text/css" href="/static/console.css"/>
+    <script>
+      function encodeFormData(data) {
+        var pairs = [];
+        var regexp = /%20/g;
+
+        for (var name in data) {
+          var value = data[name].toString();
+          var pair = encodeURIComponent(name).replace(regexp, '+') + '=' +
+              encodeURIComponent(value).replace(regexp, '+');
+          pairs.push(pair);
+        }
+
+        return pairs.join('&');
+      }
+
+      function post(url, values, callback) {
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+          if (request.readyState == 4) {
+            if (request.status == 200) {
+              callback(request.responseText);
+            } else {
+              callback(null);
+            }
+          }
+        };
+        request.open('POST', url);
+        request.setRequestHeader('Content-Type',
+                                 'application/x-www-form-urlencoded');
+        request.send(encodeFormData(values));
+      }
+
+      function addtask() {
+        var task = {
+          'name': document.getElementById('add_name').value,
+          'contacts': document.getElementById('add_contacts').value,
+          'source': document.getElementById('add_source').value,
+          'destination': document.getElementById('add_destination').value,
+          'syncs_per_day': document.getElementById('add_syncs_per_day').value,
+        };
+        post('/set', task, function() {
+          window.location.reload();
+        });
+      }
+
+      function starttask(key) {
+        var task = {
+          'key': key,
+          'start': '1',
+        };
+        post('/set', task, function() {
+          window.location.reload();
+        });
+      }
+
+      function stoptask(key) {
+        var task = {
+          'key': key,
+          'stop': '1',
+        };
+        post('/set', task, function() {
+          window.location.reload();
+        });
+      }
+
+      function settask(key) {
+        var task = {
+          'key': key,
+          'name': document.getElementById(key + '_name').value,
+          'contacts': document.getElementById(key + '_contacts').value,
+          'source': document.getElementById(key + '_source').value,
+          'destination': document.getElementById(
+              key + '_destination').value,
+          'syncs_per_day': document.getElementById(
+              key + '_syncs_per_day').value,
+        };
+        post('/set', task, function() {
+          window.location.reload();
+        });
+      }
+
+      function deltask(key) {
+        var task = {
+          'key': key,
+          'delete': '1',
+        };
+        post('/set', task, function() {
+          window.location.reload();
+        });
+      }
+
+      function setpassword() {
+        var task = {
+          'password': document.getElementById('password').value,
+        };
+        post('/admin', task, function() {
+          window.location.reload();
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div align="right">
+      {{ email }} <a href="{{ logout_url }}">Sign out</a>
+    </div>
+    <table>
+      <caption>Mirroring Tasks</caption>
+      <tr>
+        <th class="side-column"> </th>
+        <th class="name-column">Name</th>
+        <th class="contact-column">Contacts</th>
+        <th class="source-column">Source</th>
+        <th class="destination-column">Destination</th>
+        <th class="syncs-per-day-column">Daily Syncs</th>
+        <th class="status-column">Status</th>
+      </tr>
+      {% for task in tasks %}
+      <tr>
+        <td class="side-column">
+          <button type="button"
+            onclick="deltask('{{ task.key_str }}')">x</button>
+          <button type="button"
+            onclick="settask('{{ task.key_str }}')">Save</button></td>
+        <td class="name-column">
+          <input type="text" id="{{ task.key_str }}_name"
+          value="{{ task.name|escape }}"></td>
+        <td class="contacts-column">
+          <input type="text" id="{{ task.key_str }}_contacts"
+          value="{{ task.contacts_str|escape }}"></td>
+        <td class="source-column">
+          <input type="text" id="{{ task.key_str }}_source"
+          value="{{ task.source|escape }}"></td>
+        <td class="destination-column">
+          <input type="text" id="{{ task.key_str }}_destination"
+          value="{{ task.destination|escape }}"></td>
+        <td class="syncs-per-day-column">
+          <input type="text" id="{{ task.key_str }}_syncs_per_day"
+          value="{{ task.syncs_per_day|escape }}"></td>
+        <td class="status-column">
+          {{ task.status_str|escape }}
+          {% if task.is_idle %}
+          <button type="button"
+            onclick="starttask('{{ task.key_str }}')">Start</button></td>
+          {% else %}
+          <button type="button"
+            onclick="stoptask('{{ task.key_str }}')">Stop</button></td>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <td class="side-column">
+          <button type="button" onclick="addtask()">+</button></td>
+        <td class="name-column">
+          <input type="text" id="add_name" value=""></td>
+        <td class="contacts-column">
+          <input type="text" id="add_contacts" value=""></td>
+        <td class="source-column">
+          <input type="text" id="add_source" value=""></td>
+        <td class="destination-column">
+          <input type="text" id="add_destination" value=""></td>
+        <td class="syncs-per-day-column">
+          <input type="text" id="add_syncs_per_day" value=""></td>
+        <td class="status-column"> </td>
+      </tr>
+    </table>
+    <table>
+      <caption>Change Log</caption>
+      <tr>
+        <th class="timestamp-column">Timestamp</th>
+        <th class="who-column">Who</th>
+        <th class="name-column">Name</th>
+        <th class="changes-column">Changes</th>
+      </tr>
+      {% for change in changes %}
+      <tr>
+        <td class="timestamp-column">{{ change.timestamp|escape }}</td>
+        <td class="who-column">{{ change.who|escape }}</td>
+        <td class="name-column">{{ change.name|escape }}</td>
+        <td class="changes-column">{{ change.changes|escape }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% if is_admin %}
+    <table>
+      <caption>Admin Options</caption>
+      <tr>
+        <th width="300">Worker Password</th>
+        <th width="40"> </th>
+        <th> </th>
+      </tr>
+      <tr>
+        <td>
+          <input type="text" id="password" value="{{ password }}">
+        </td>
+        <td>
+          <button onclick="setpassword()">Set</button>
+        </td>
+        <td> </td>
+      </tr>
+    </table>
+    {% endif %}
+  </body>
+</html>

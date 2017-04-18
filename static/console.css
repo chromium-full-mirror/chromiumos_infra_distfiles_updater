@@ -1,0 +1,77 @@
+caption {
+  color: #003;
+  font-weight: bold;
+  text-decoration: underline;
+  font-size: 20px;
+}
+
+h1 {
+  font-size: 16px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #999;
+  padding: 0 0
+}
+
+th {
+  background-color: #cdf;
+}
+
+.side-column {
+  width: 80px;
+}
+
+.name-column {
+  width: 100px;
+}
+
+.contacts-column {
+}
+
+.source-column {
+}
+
+.destination-column {
+}
+
+.syncs-per-day-column {
+  width: 110px;
+}
+
+.status-column {
+  width: 110px;
+}
+
+.timestamp-column {
+  width: 200px;
+}
+
+.who-column {
+  width: 200px;
+}
+
+.changes-column {
+}
+
+td {
+  background-color: #fff;
+}
+
+input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background-color: #fff;
+}
+
+a:link { color: #000077; }
+a:active { color: #000077; }
+a:visited { color: #000077; }
+a:hover { color: #000077; }
+
