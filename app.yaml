@@ -1,11 +1,13 @@
 application: dupit-hr
-version: 1
-runtime: python
+version: 2
+runtime: python27
 api_version: 1
+# TODO(pprabhu) Verify if app is threadsafe.
+threadsafe: False
 
 handlers:
 - url: /static
   static_dir: static
 
 - url: /.*
-  script: dup_it_web.py
+  script: dup_it_web.APP

@@ -9,13 +9,12 @@ import os
 import pickle
 import sys
 import uuid
+
+import webapp2
 from google.appengine.api import memcache
 from google.appengine.api import users
 from google.appengine.ext import db
-from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
-from google.appengine.ext.webapp.util import run_wsgi_app
-from django.utils import simplejson
 
 
 TIMEOUT_DURATION = 10
@@ -88,10 +87,6 @@ def CheckWorkerPassword(request_handler):
 
 def CheckUserPassword(request_handler):
   uri = request_handler.request.uri
-#    if uri.startswith('http:'):
-#      uri = 'https:' + uri[5:]
-#      request_handler.redirect(users.create_login_url(uri))
-#      return
   user = users.get_current_user()
   if not user:
     request_handler.redirect(users.create_login_url(uri))
@@ -110,7 +105,7 @@ def UpdateWorkerMetrics():
   wm.put()
 
 
-class StartHandler(webapp.RequestHandler):
+class StartHandler(webapp2.RequestHandler):
   """Handle requests to start work."""
 
   def post(self):
@@ -165,7 +160,7 @@ class StartHandler(webapp.RequestHandler):
       }))
 
 
-class StatusHandler(webapp.RequestHandler):
+class StatusHandler(webapp2.RequestHandler):
   """Handle requests to note changes in a task's status."""
 
   def post(self):
@@ -191,7 +186,7 @@ class StatusHandler(webapp.RequestHandler):
     self.response.out.write(str(status))
 
 
-class SetHandler(webapp.RequestHandler):
+class SetHandler(webapp2.RequestHandler):
   """Handle requests to change tasks."""
 
   def post(self):
@@ -255,7 +250,7 @@ class SetHandler(webapp.RequestHandler):
     change.put()
 
 
-class AdminHandler(webapp.RequestHandler):
+class AdminHandler(webapp2.RequestHandler):
   """Handle admin only tasks."""
 
   def post(self):
@@ -272,7 +267,7 @@ class AdminHandler(webapp.RequestHandler):
       memcache.add('worker_password', password, 60)
 
 
-class HealthHandler(webapp.RequestHandler):
+class HealthHandler(webapp2.RequestHandler):
   """Handle requests for health check."""
 
   def get(self):
@@ -285,7 +280,7 @@ class HealthHandler(webapp.RequestHandler):
     last_worker_connect = td.seconds + td.days * 24 * 3600
     # Emit as json.
     self.response.headers['Content-Type'] = 'text/plain'
-    self.response.out.write(simplejson.dumps({
+    self.response.out.write(json.dumps({
         'last_worker_connect': last_worker_connect,
         }))
 
@@ -315,7 +310,7 @@ def DescribeChange(change):
   return desc
 
 
-class ConsoleHandler(webapp.RequestHandler):
+class ConsoleHandler(webapp2.RequestHandler):
   """View log info."""
 
   def get(self):
@@ -354,7 +349,7 @@ class ConsoleHandler(webapp.RequestHandler):
     self.response.out.write(template.render(path, template_values))
 
 
-APPLICATION = webapp.WSGIApplication([
+APP = webapp2.WSGIApplication([
     ('/', ConsoleHandler),
     ('/start', StartHandler),
     ('/status', StatusHandler),
@@ -362,11 +357,3 @@ APPLICATION = webapp.WSGIApplication([
     ('/admin', AdminHandler),
     ('/health', HealthHandler),
 ], debug=False)
-
-
-def main():
-  run_wsgi_app(APPLICATION)
-
-
-if __name__ == '__main__':
-  main()
