@@ -135,6 +135,11 @@ def Worker(objects, progress, mutex, original_count,
     print '%d/%d %0.2f%% - %s' % (
         index, original_count,
         float(index) * 100 / float(original_count), path)
+
+    if _GSPathExists(gsutil, dst):
+      print 'Destination path %s exists, skipped' % dst
+      continue
+
     # Get state stamp.
     fh = urllib.urlopen(o)
     state_stamp = StateStamp(fh.info())
@@ -218,3 +223,15 @@ def Mirror(source, destination, progress, page_limit=200):
   for w in workers:
     w.join()
   return 0
+
+
+def _GSPathExists(gsutil, path):
+  """Returns True if the GS path exists, False otherwise.
+
+  Args:
+    gsutil: Path to the gsutil binary to use.
+    path: The path to check for (gs://...).
+  """
+  cmd = [gsutil, 'stat', path]
+  ret, _, _ = RunCommand(cmd)
+  return ret == 0
