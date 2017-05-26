@@ -196,17 +196,6 @@ def Mirror(source, destination, progress, page_limit=200):
   m = re.match('^gs://([^/]*)(.*)$', destination)
   assert m and m.group(1)
   bucket = m.group(1)
-  # Create bucket.
-  cmd = [gsutil, 'mb', 'gs://' + bucket]
-  # Intentionally ignoring failures.
-  RunCommand(cmd)
-  # Set bucket public.
-  gs_path = 'gs://' + bucket
-  cmd = [gsutil, 'setacl', 'public-read', gs_path]
-  (ret, _, _) = RunCommand(cmd)
-  if ret != 0:
-    sys.stderr.write('ERROR - setacl failed on ' + gs_path + '\n')
-    return 2
   # Gather list of objects.
   objects = CrawlTree(source, page_limit)
   # Spawn workers
