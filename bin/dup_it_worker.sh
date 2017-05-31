@@ -37,7 +37,7 @@ dup_it_passwd=$(curl -H "Metadata-Flavor: Google" ${ATTR_URL})
 (date && \
  git fetch -q origin && \
  git checkout -qf --detach origin/master && \
- git clean -qfxd && \
+ git clean -qfd && \
  ${DUP_IT_SCRIPT} -s "${dup_it_url}" -p "${dup_it_passwd}" && \
  date) >> "${LOG_FILE}" 2>&1
 
