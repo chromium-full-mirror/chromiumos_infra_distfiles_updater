@@ -1,3 +1,0 @@
-blacklist:
-#- subnet: 2620:0:1000:1b01:baac:6fff:fe97:3020
-#  description: overloaded on 2011/11/08
